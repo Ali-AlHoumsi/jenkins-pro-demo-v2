@@ -53,8 +53,4 @@ pipeline {
                 script {
                     sh "docker rm -f jenkins-pro-app || true"
                     sh "docker run -d -p 3000:3000 --name jenkins-pro-app $DOCKERHUB_USER/jenkins-pro-api:${IMAGE_TAG}"
-                }
-            }
-        }
-    }
-}
+ؤ
