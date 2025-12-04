@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         DOCKERHUB_USER = "alialhoumsi"
+        IMAGE_TAG = "1.0.0"  // يمكنك تغييره حسب نسختك
+        EMAIL_RECIPIENTS = "ali.houmsi1234@gmail.com" // ضع ايميلك هنا
     }
 
     stages {
@@ -16,7 +18,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t jenkins-pro-api .'
+                    sh "docker build -t jenkins-pro-api:${IMAGE_TAG} ."
                 }
             }
         }
@@ -24,7 +26,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh 'docker run jenkins-pro-api npm test'
+                    sh "docker run --rm jenkins-pro-api:${IMAGE_TAG} npm test"
                 }
             }
         }
@@ -40,8 +42,8 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    sh 'docker tag jenkins-pro-api $DOCKERHUB_USER/jenkins-pro-api:latest'
-                    sh 'docker push $DOCKERHUB_USER/jenkins-pro-api:latest'
+                    sh "docker tag jenkins-pro-api:${IMAGE_TAG} $DOCKERHUB_USER/jenkins-pro-api:${IMAGE_TAG}"
+                    sh "docker push $DOCKERHUB_USER/jenkins-pro-api:${IMAGE_TAG}"
                 }
             }
         }
@@ -49,10 +51,23 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    sh 'docker rm -f jenkins-pro-app || true'
-                    sh 'docker run -d -p 3000:3000 --name jenkins-pro-app jenkins-pro-api'
+                    sh "docker rm -f jenkins-pro-app || true"
+                    sh "docker run -d -p 3000:3000 --name jenkins-pro-app $DOCKERHUB_USER/jenkins-pro-api:${IMAGE_TAG}"
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            mail to: "${EMAIL_RECIPIENTS}",
+                 subject: "Jenkins Pipeline Succeeded: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "الـ Pipeline نجح بنجاح!"
+        }
+        failure {
+            mail to: "${EMAIL_RECIPIENTS}",
+                 subject: "Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "الـ Pipeline فشل. تحقق من السجلات في Jenkins."
         }
     }
 }
