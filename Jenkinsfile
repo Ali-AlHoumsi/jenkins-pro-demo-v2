@@ -11,7 +11,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Ali-AlHoumsi/docker-jenkins-pro-demo-v2.git'
+                git branch: 'main', url: 'https://github.com/Ali-AlHoumsi/docker-jenkins-pro-demo-v2.git' , credentialsId: 'github-token-id'
             }
         }
 
